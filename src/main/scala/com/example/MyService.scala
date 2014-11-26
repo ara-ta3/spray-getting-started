@@ -3,35 +3,34 @@ package com.example
 import akka.actor.Actor
 import spray.routing._
 import spray.http._
+import spray.json._
 import MediaTypes._
 
-// we don't implement our route structure directly in the service actor because
-// we want to be able to test it independently, without having to spin up an actor
 class MyServiceActor extends Actor with MyService {
 
-  // the HttpService trait defines only one abstract member, which
-  // connects the services environment to the enclosing actor or test
   def actorRefFactory = context
 
-  // this actor only runs our route, but you could add
-  // other things here, like request stream processing
-  // or timeout handling
   def receive = runRoute(myRoute)
 }
 
-// this trait defines our service behavior independently from the service actor
-trait MyService extends HttpService {
+case class Name(firstName :String, lastName: String)
+case class User(id:String, name:Name)
 
+object MyJsonProtocol extends DefaultJsonProtocol {
+  implicit val NameFormat = jsonFormat2(Name)
+  implicit val UserFormat = jsonFormat2(User)
+}
+
+trait MyService extends HttpService {
+  import MyJsonProtocol._
+
+  val name = Name("Arata", "Tanaka")
   val myRoute =
     path("") {
       get {
-        respondWithMediaType(`text/html`) { // XML is marshalled to `text/xml` by default, so we simply override here
+        respondWithMediaType(`application/json`) {
           complete {
-            <html>
-              <body>
-                <h1>Say hellao to <i>spray-routing</i> on <i>spray-can</i>!</h1>
-              </body>
-            </html>
+            name.toJson.compactPrint
           }
         }
       }
