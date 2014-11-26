@@ -19,7 +19,6 @@ class MyServiceActor extends Actor with MyService {
   def receive = runRoute(myRoute)
 }
 
-
 // this trait defines our service behavior independently from the service actor
 trait MyService extends HttpService {
 
@@ -30,11 +29,20 @@ trait MyService extends HttpService {
           complete {
             <html>
               <body>
-                <h1>Say hello to <i>spray-routing</i> on <i>spray-can</i>!</h1>
+                <h1>Say hellao to <i>spray-routing</i> on <i>spray-can</i>!</h1>
               </body>
             </html>
           }
         }
       }
+    } ~
+  path("post") {
+    get {
+      respondWithMediaType(`application/json`) {
+        complete {
+          """{"json":"hoge"}"""
+        }
+      }
     }
+  }
 }
